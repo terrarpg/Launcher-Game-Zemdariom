@@ -1,4 +1,4 @@
-name: Launcher Build & Release
+name: Launcher Build Windows
 
 on:
   push:
@@ -8,11 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # On compile pour les 3 systèmes en même temps
-        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Code
@@ -28,7 +24,6 @@ jobs:
         run: npm install
 
       - name: Run Build and Publish
-        # Cette commande lance votre build.js qui gère electron-builder
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

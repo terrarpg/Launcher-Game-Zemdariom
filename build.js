@@ -28,7 +28,6 @@ class Index {
     }
 
     async Obfuscate() {
-        console.log("Nettoyage du dossier de build...");
         if (fs.existsSync("./app")) fs.rmSync("./app", { recursive: true });
 
         for (let path of this.Fileslist) {
@@ -42,7 +41,6 @@ class Index {
                 let code = fs.readFileSync(path, "utf8");
                 code = code.replace(/src\//g, 'app/');
                 if (this.obf) {
-                    console.log(`Obfuscation de : ${path}`);
                     let obfResult = JavaScriptObfuscator.obfuscate(code, { 
                         optionsPreset: 'medium-obfuscation',
                         target: 'node' 
@@ -59,15 +57,14 @@ class Index {
 
     async buildPlatform() {
         await this.Obfuscate();
-        console.log("Lancement de la compilation avec electron-builder...");
+        console.log("Lancement du build Windows...");
 
         await builder.build({
             config: {
                 appId: "com.zendariom.launcher",
                 productName: productName,
-                copyright: "Copyright © 2025 WW_DJY",
                 directories: { output: "dist" },
-                artifactName: "${productName}-${os}-${arch}.${ext}",
+                artifactName: "${productName}-Setup-${version}.${ext}",
                 extraMetadata: { main: "app/app.js" },
                 files: ["app/**/*", "package.json"],
                 publish: [{
@@ -83,18 +80,10 @@ class Index {
                     oneClick: true,
                     allowToChangeInstallationDirectory: false,
                     createDesktopShortcut: true
-                },
-                mac: {
-                    target: ["dmg"],
-                    icon: "src/assets/images/icon.icns"
-                },
-                linux: {
-                    target: ["AppImage"],
-                    icon: "src/assets/images/icon.png"
                 }
+                // Les sections Mac et Linux ont été supprimées pour éviter les erreurs
             }
         });
-        console.log("Build terminé !");
     }
 
     getFiles(path, file = []) {
@@ -110,17 +99,14 @@ class Index {
     }
 
     async iconSet(url) {
-        console.log("Téléchargement de l'icône...");
         let res = await nodeFetch(url);
         let buffer = await res.buffer();
         const image = await Jimp.read(buffer);
         let pngBuffer = await image.resize(256, 256).getBufferAsync(Jimp.MIME_PNG);
         
         if (!fs.existsSync("src/assets/images")) fs.mkdirSync("src/assets/images", { recursive: true });
-        fs.writeFileSync("src/assets/images/icon.icns", png2icons.createICNS(pngBuffer, png2icons.BILINEAR, 0));
         fs.writeFileSync("src/assets/images/icon.ico", png2icons.createICO(pngBuffer, png2icons.HERMITE, 0, false));
         fs.writeFileSync("src/assets/images/icon.png", pngBuffer);
-        console.log("Icônes créées.");
     }
 }
 
