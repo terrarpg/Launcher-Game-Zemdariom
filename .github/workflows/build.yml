@@ -1,15 +1,13 @@
-name: Launcher Build Windows
+name: Build and Release
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - main # Si ta branche est 'master', change 'main' par 'master'
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -23,7 +21,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Build and Publish
+      - name: Build and Publish
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

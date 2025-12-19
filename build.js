@@ -1,12 +1,6 @@
 const fs = require("fs");
-const builder = require('electron-builder')
+const builder = require('electron-builder');
 const JavaScriptObfuscator = require('javascript-obfuscator');
-const nodeFetch = require('node-fetch')
-const png2icons = require('png2icons');
-const Jimp = require('jimp');
-
-const pkg = require('./package.json');
-const productName = pkg.preductname || pkg.name;
 
 class Index {
     async init() {
@@ -14,9 +8,6 @@ class Index {
         this.Fileslist = [];
         
         for (let val of process.argv) {
-            if (val.startsWith('--icon')) {
-                return await this.iconSet(val.split('=')[1]);
-            }
             if (val.startsWith('--obf')) {
                 this.obf = JSON.parse(val.split('=')[1]);
             }
@@ -57,32 +48,18 @@ class Index {
 
     async buildPlatform() {
         await this.Obfuscate();
-        console.log("Lancement du build Windows...");
+        console.log("Démarrage du build Electron...");
 
         await builder.build({
+            publish: 'always', // Force l'envoi vers GitHub
             config: {
-                appId: "com.zendariom.launcher",
-                productName: productName,
-                directories: { output: "dist" },
-                artifactName: "${productName}-Setup-${version}.${ext}",
-                extraMetadata: { main: "app/app.js" },
-                files: ["app/**/*", "package.json"],
-                publish: [{
-                    provider: "github",
-                    owner: "terrarpg",
-                    repo: "Launcher-Game-Zemdariom"
-                }],
-                win: {
-                    target: ["nsis"],
-                    icon: "src/assets/images/icon.ico"
-                },
-                nsis: {
-                    oneClick: true,
-                    allowToChangeInstallationDirectory: false,
-                    createDesktopShortcut: true
-                }
-                // Les sections Mac et Linux ont été supprimées pour éviter les erreurs
+                // Les configurations sont lues depuis le package.json
             }
+        }).then(() => {
+            console.log("Build Windows réussi !");
+        }).catch(err => {
+            console.error("Erreur de build:", err);
+            process.exit(1);
         });
     }
 
@@ -96,17 +73,6 @@ class Index {
             }
         }
         return file;
-    }
-
-    async iconSet(url) {
-        let res = await nodeFetch(url);
-        let buffer = await res.buffer();
-        const image = await Jimp.read(buffer);
-        let pngBuffer = await image.resize(256, 256).getBufferAsync(Jimp.MIME_PNG);
-        
-        if (!fs.existsSync("src/assets/images")) fs.mkdirSync("src/assets/images", { recursive: true });
-        fs.writeFileSync("src/assets/images/icon.ico", png2icons.createICO(pngBuffer, png2icons.HERMITE, 0, false));
-        fs.writeFileSync("src/assets/images/icon.png", pngBuffer);
     }
 }
 
